@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/bootstrap.css">
+<link rel="stylesheet" href="css/custom.css">
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/feather.css">
+<link rel="stylesheet" id="darkTheme" href="css/dark.css">
+<link rel="stylesheet" id="lightTheme" href="css/light.css" disabled>
+<script src="js/sweetalert2.all.min.js"></script>
+<link id="defaultThemeSweetAlert" rel="stylesheet" href="css/sweetalert/sweetalert2.min.css">
+<link id="darkThemeSweetAlert" rel="stylesheet" href="css/sweetalert/dark.css" disabled>
+<script src="js/custom.js"></script>
+<link rel="icon" href="img/logo.jpg">
+<style>
+  body {
+    background: url(../img/fondo.jpg) no-repeat center center fixed;
+  }
+</style>
+<title>Autobuses rubio</title>
+</head>
+
+<body>
+  <div class="wrapper vh-100">
+    <div class="row align-items-center h-100">
+      <form class="col-10 m-auto rounded-3 py-3 container needs-validation" novalidate>
+
+
+        <h1 class="h2 mb4 text-center"><a class="float-start text-decoration-none" href="login.html">
+            <i class="fe fe-arrow-left fe-16"></i>
+          </a>Registrarse</h1>
+        <div class="form-group">
+          <label for="dniRegistro">DNI/NIF <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="dniRegistro" placeholder="DNI/NIF" required>
+          <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+          <label for="nombreRegistro">Nombre <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="nombreRegistro" placeholder="Nombre" required>
+          <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+          <label for="apellidosRegistro">Apellidos <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="apellidosRegistro" placeholder="Apellidos" required>
+          <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+          <label for="telefonoRegistro">Teléfono <span class="text-danger">*</span></label>
+          <input type="tel" class="form-control" id="telefonoRegistro" placeholder="321654987" pattern="^\d{9}$"
+            required>
+          <div class="invalid-feedback">El número de telefono debe tener 9 dígitos</div>
+        </div>
+        <div class="form-group">
+          <label for="emailRegistro">Correo Electónico <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" id="emailRegistro" placeholder="email@ejemplo.com" required>
+          <div class="invalid-feedback">Introduce un correo electrónico válido</div>
+        </div>
+        <div class="form-group">
+          <label for="passwordRegistro">Contraseña <span class="text-danger">*</span></label>
+          <input type="password" class="form-control" id="passwordRegistro" placeholder="Contraseña" minlength="8"
+            required>
+          <div class="invalid-feedback">La contraseña debe tener al menos 8 caracteres</div>
+        </div>
+        <div class="form-group">
+          <label for="passwordRegistroRepetir">Repetir Contraseña <span class="text-danger">*</span></label>
+          <input type="password" class="form-control" id="passwordRegistroRepetir" placeholder="Contraseña" required>
+          <div class="invalid-feedback">Las contraseñas deben coincidir</div>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block mt-4" type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+  <div
+    class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <script src="js/jquery-3.7.1.min.js"></script>
+  <script src="js/bootstrap.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/bdUsuarios.js"></script>
+  <script src="js/usuario.js"></script>
+  <script src="js/bdConnection.js"></script>
+  <script>
+
+    let dniRegistro;
+    let nombreRegistro;
+    let apellidosRegistro;
+    let telefonoRegistro;
+    let emailRegistro;
+    let password;
+    let password2;
+    document.addEventListener('DOMContentLoaded', function () {
+      verificacionLogin();
+
+      dniRegistro = document.getElementById('dniRegistro');
+      nombreRegistro = document.getElementById('nombreRegistro');
+      apellidosRegistro = document.getElementById('apellidosRegistro');
+      telefonoRegistro = document.getElementById('telefonoRegistro');
+      emailRegistro = document.getElementById('emailRegistro');
+      password = document.getElementById('passwordRegistro');
+      password2 = document.getElementById('passwordRegistroRepetir');
+      'use strict';
+
+      // Función para verificar si las contraseñas coinciden
+      function validatePasswords() {
+        if (password2.value === '') {
+          // Si el campo repetir contraseña está vacío, no hay error
+          password2.setCustomValidity('');
+        } else if (password.value !== password2.value) {
+          // Si las contraseñas no coinciden
+          password2.setCustomValidity('Las contraseñas no coinciden');
+        } else {
+          // Si coinciden, todo está correcto
+          password2.setCustomValidity('');
+        }
+      }
+
+      // Eventos 'input' para validación en tiempo real
+      password.addEventListener('input', validatePasswords);
+      password2.addEventListener('input', validatePasswords);
+      dniRegistro.addEventListener('input', function () {
+        dniRegistro.classList.remove('is-invalid');
+        dniRegistro.nextElementSibling.textContent = "";
+      });
+      // Validación general del formulario
+      const forms = document.querySelectorAll('.needs-validation');
+      Array.from(forms).forEach(function (form) {
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); // Siempre prevenir el envío predeterminado
+          event.stopPropagation();
+
+          if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return; // Si no es válido, no hacemos nada más
+          }
+
+          // Llamada al servidor
+          try {
+            await usuarioRepeat(dniRegistro.value);
+          } catch (error) {
+            console.error("Error en la validación del servidor:", error);
+            SweetAlert.alert("Ocurrió un error. Intenta nuevamente.");
+          }
+        }, false);
+      });
+    });
+
+    /**
+     * Lleva al usuario a la pantalla de inicio de sesión
+     * una vez que se ha registrado correctamente
+     */
+    async function successRegister(data) {
+      console.log(data);
+      if (data != "1") {
+        SweetAlert.alert("Ocurrio un error en la creación de usuarios");
+      }
+      SweetAlert.successfull("Usuario creado correctamente", null, redireccionLogin);
+    }
+
+    function redireccionLogin() {
+      window.location.href = "login.html";
+    }
+
+    /**
+     * Verifica si el DNI/NIF ya esta registrado en la base de datos.
+     * Si ya esta registrado, se muestra un mensaje de error y se borra el campo del formulario.
+     * Si no esta registrado, se registra el usuario y se redirige a la pantalla de inicio de sesión.
+     * @param {number} data - Resultado de la verificación del DNI/NIF.
+     * @returns {Promise<void>}
+     */
+    async function repeatDNI(data) {
+      if (data == 1) {
+        dniRegistro.classList.add('is-invalid');
+        dniRegistro.nextElementSibling.textContent = "El DNI/NIF ya esta registrado"
+        dniRegistro.value = "";
+      } else if (data == 0) {
+        dniRegistro.classList.remove('is-invalid');
+        dniRegistro.nextElementSibling.textContent = "";
+        await usuarioCreate(dniRegistro.value, nombreRegistro.value, apellidosRegistro.value, telefonoRegistro.value, emailRegistro.value, password.value);
+      } else {
+        SweetAlert.alert("Ocurrio un error");
+      }
+    }
+  </script>
+</body>
+
+</html>

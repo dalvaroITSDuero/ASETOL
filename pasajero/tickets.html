@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../css/bootstrap.css">
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+  <link rel="stylesheet" href="../css/feather.css">
+  <link rel="stylesheet" id="darkTheme" href="../css/dark.css">
+  <link rel="stylesheet" id="lightTheme" href="../css/light.css" disabled>
+  <script src="../js/sweetalert2.all.min.js"></script>
+  <link id="defaultThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/sweetalert2.min.css">
+  <link id="darkThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/dark.css" disabled>
+  <link rel="icon" href="../img/logo.jpg">
+  <title>Tickets</title>
+</head>
+
+<body>
+
+  <nav class="sticky-top navbar">
+    <div class="nav-item flex-grow-1 m-0" style="margin-right: 0 !important;">
+      <a href="indexPasajero.html" class="navbar-brand" style="float: left;
+      position: absolute;
+      left: 0;
+      top: 7px;">
+        <img src="../img/logo.jpg" class="img-logo" alt="rubio Logo">
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link my-2" href="#" id="modeSwitcher" data-mode="dark">
+        <i class="fe fe-sun fe-16"></i>
+      </a>
+    </div>
+
+    <!-- <div class="nav-item nav-notif">
+      <a class="nav-link my-2" href="#" data-toggle="modal" data-target=".modal-notif">
+        <span class="fe fe-bell fe-16"></span>
+        <span class="dot dot-md bg-success"></span>
+      </a>
+    </div> -->
+
+    <div class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <span class="avatar avatar-sm mt-2">
+          <img id="imagenPerfil" src="../img/avatar_default.jpg" alt="..." class="avatar-img rounded-circle">
+        </span>
+      </a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+        <a class="dropdown-item py-2 text-center" href="/perfil.html">Perfil</a>
+        <a class="dropdown-item py-2 text-center bg-danger desconectar"
+          style="border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; cursor: pointer">Desconectar</a>
+      </div>
+    </div>
+  </nav>
+
+
+
+
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <h2 class="mt-4">Pagos</h2>
+      <div id="container" class="d-flex flex-column-reverse">
+
+        <!-- <div class="col-12 mt-4 input-group rounded">
+          <input type="text" class="form-control" placeholder="Username" value="20-12-2022    20-12-2022" disabled
+            aria-label="Username">
+          <span class="input-group-text">
+            <span class="fe fe-24 fe-check text-success"></span>
+          </span>
+        </div>
+        <div class="col-12 mt-4 input-group rounded">
+          <input type="text" class="form-control" placeholder="Username" disabled aria-label="Username">
+          <button class="btn btn-outline-secondary" type="button" value="11" id="pagar">PAGAR</button>
+          <span class="input-group-text">
+            <span class="fe fe-24 fe-x-circle text-danger"></span>
+          </span>
+        </div> -->
+
+      </div>
+    </div> <!-- .row -->
+  </div>
+
+
+
+  <div
+    class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <script src="../js/jquery-3.7.1.min.js"></script>
+  <script src="../js/bootstrap.bundle.min.js"></script>
+  <script src="../js/custom.js"></script>
+  <script src="../js/bdConnection.js"></script>
+  <script src="../js/bdUsuarios.js"></script>
+  <script src="../js/bdTickets.js"></script>
+  <script src="../js/usuario.js"></script>
+  <script src="../js/ticket.js"></script>
+  <script src="../js/empresa.js"></script>
+  <script>
+
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+      "use strict";
+      verificacionPermisos(["2"]);
+      firstLogin();
+      cargarFotoPerfil();
+      getTicketsByIdUsuario(generarTickets);
+      respuestaPago();
+      Desconectar.logout();
+    });
+
+    $("#modeSwitcher").on("click", function (e) {
+      e.preventDefault(), modeSwitch(), location.reload()
+    })
+
+    /**
+     * Genera los tickets en el contenedor #container
+     * @param {Promise.<Array.<Ticket>>} tickets - Promesa que se resuelve con un array de tickets
+     */
+    async function generarTickets(tickets) {
+      tickets = await tickets;
+      // console.log(tickets);
+      let contenedor = document.getElementById("container");
+      // let numeroDeNoPagados;
+      // tickets.forEach(tick => { if (tick.pagado == "false") { numeroDeNoPagados++; } });
+      let contador = 0;
+      tickets.forEach(tick => {
+        let contenido = '<div class="col-12 mt-4 input-group rounded">\
+          <input type="text" class="form-control" placeholder="Username" value="'+ tick.fechaInicio + '  --  '
+          + tick.fechaFin + '" disabled aria-label="Username">';
+        if (tick.pagado == "true") {
+          contenido += '<span class="input-group-text">\
+            <span class="fe fe-24 fe-check text-success"></span>\
+          </span>\
+        </div >';
+        } else {
+          // contenido += '<button class="btn btn-outline-secondary" type="button" value="' + tick.id + '" onclick="pagoTicket(this.value)">PAGAR</button>\
+          contenido += '<button class="btn btn-outline-secondary" type="button" value="' + tick.id + '" onclick="pagoTicket(this.value' + (contador > 0 ? ', true' : '') + ')">PAGAR</button>\
+          <span class="input-group-text">\
+            <span class="fe fe-24 fe-x-circle text-danger"></span>\
+          </span>\
+        </div>';
+          contador++;
+        }
+        contenedor.innerHTML += contenido;
+        // console.log(contenido);
+      });
+      Spinner.hide();
+    }
+
+    /**
+     * Paga un ticket y redirige a la URL de pago.
+     * @param {number} id - Id del ticket a pagar.
+     */
+    function pagoTicket(id, cancelar = false) {
+      if (!cancelar) {
+        console.log(id);
+        pago(id, datosPagoSuccess);
+      } else {
+        SweetAlert.alert("Debes pagar antes los tickets anteriores");
+      }
+    }
+
+    /**
+     * Función que se llama cuando se recibe la respuesta del servidor en la petición de pago de un ticket.
+     * Redirige a la URL de pago con los parámetros de pago.
+     * @param {Promise.<{Ds_Merchant_MerchantParameters: string, Ds_Merchant_MerchantSignature: string}>} datos - Promesa que se resuelve con un objeto que contiene los parámetros de pago.
+     */
+    async function datosPagoSuccess(datos) {
+      if (datos) {
+        datos = await datos;
+        // console.log(datos, datos.Ds_Merchant_MerchantParameters);
+        let url = 'pago.html?Ds_Merchant_MerchantParameters=' + datos.Ds_Merchant_MerchantParameters + '&Ds_Signature=' + datos.Ds_Merchant_MerchantSignature + '';
+        Spinner.hide();
+        window.location.href = url;
+      }
+    }
+
+    function respuestaPago() {
+      const params = new URLSearchParams(window.location.search);
+      // Leer los valores
+      const ok = params.get('OK');
+      if (ok != null && ok == 1) {
+        SweetAlert.successfull("Pago realizado correctamente");
+      } else if (ok != null && ok == 0) {
+        SweetAlert.alert("Pago erroneo, intentelo de nuevo más tarde");
+      }
+    }
+  </script>
+</body>
+
+</html>

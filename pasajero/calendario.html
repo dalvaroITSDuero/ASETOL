@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../css/bootstrap.css">
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+  <link rel="stylesheet" href="../css/feather.css">
+  <link rel="stylesheet" id="darkTheme" href="../css/dark.css">
+  <link rel="stylesheet" id="lightTheme" href="../css/light.css" disabled>
+  <script src="../js/sweetalert2.all.min.js"></script>
+  <link id="defaultThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/sweetalert2.min.css">
+  <link id="darkThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/dark.css" disabled>
+  <link rel="icon" href="../img/logo.jpg">
+  <style>
+    body {
+      height: 100vh;
+    }
+
+    a {
+      text-decoration: none;
+      color: white;
+    }
+
+    .fc-daygrid-day-top {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* height: 100%; */
+      /* Asegurarse de que la celda tenga la altura completa */
+    }
+
+    .fc-daygrid-day-frame {
+      height: 5px;
+    }
+
+    #selectTurno {
+      margin: 0 auto;
+      margin-top: 10px;
+      width: 50vh;
+    }
+
+    /* 
+    .fc-scrollgrid-section.fc-scrollgrid-section-body.fc-scrollgrid-section-liquid {
+      height: 60vh;
+    } */
+
+    #calendar {
+      height: 70vh;
+      margin-top: 10px;
+    }
+
+    .alert {
+      margin: 0 auto;
+      margin-top: 10px;
+      width: 95%;
+    }
+  </style>
+  <title>Calendario</title>
+</head>
+
+<body>
+
+  <nav class="sticky-top navbar">
+    <div class="nav-item flex-grow-1 m-0" style="margin-right: 0 !important;">
+      <a href="indexPasajero.html" class="navbar-brand" style="float: left;
+      position: absolute;
+      left: 0;
+      top: 7px;">
+        <img src="../img/logo.jpg" class="img-logo" alt="rubio Logo">
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link my-2" href="#" id="modeSwitcher" data-mode="dark">
+        <i class="fe fe-sun fe-16"></i>
+      </a>
+    </div>
+
+    <!-- <div class="nav-item nav-notif">
+      <a class="nav-link my-2" href="#" data-toggle="modal" data-target=".modal-notif">
+        <span class="fe fe-bell fe-16"></span>
+        <span class="dot dot-md bg-success"></span>
+      </a>
+    </div> -->
+
+    <div class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <span class="avatar avatar-sm mt-2">
+          <img id="imagenPerfil" src="../img/avatar_default.jpg" alt="..." class="avatar-img rounded-circle">
+        </span>
+      </a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+        <a class="dropdown-item py-2 text-center" href="/perfil.html">Perfil</a>
+        <a class="dropdown-item py-2 text-center bg-danger desconectar"
+          style="border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; cursor: pointer">Desconectar</a>
+      </div>
+    </div>
+  </nav>
+
+
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    Para marcar un turno debes seleccionar el turno en el selector de abajo, y luego asignarselo a la fecha
+    correspondiente.<br>Debá estar todo el calendario seleccionado, ya sea con un turno, o con descanso.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+
+  <div id="calendar"></div>
+
+  <div>
+    <select name="Turno" id="selectTurno" class="form-control">
+      <option value="">Seleccione Turno</option>
+      <option value="0">Descanso</option>
+      <option value="1">Mañana</option>
+      <option value="2">Tarde</option>
+      <option value="3">Noche</option>
+    </select>
+  </div>
+
+  <div
+    class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <script src="../js/jquery-3.7.1.min.js"></script>
+  <script src="../js/bootstrap.bundle.min.js"></script>
+  <script src="../js/custom.js"></script>
+  <script src="../js/bdConnection.js"></script>
+  <script src="../js/bdUsuarios.js"></script>
+  <script src="../js/bdCalendario.js"></script>
+  <script src="../js/bdTickets.js"></script>
+  <script src="../js/usuario.js"></script>
+  <script src="../js/calendario.js"></script>
+  <script src="../js/empresa.js"></script>
+  <script src="../js/ticket.js"></script>
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+  <script>
+
+    let selectTurno;
+    let calendar;
+    let tickets;
+    let mensaje;
+
+    const color = ['yellow', 'green', 'blue', 'purple'];
+
+    document.addEventListener("DOMContentLoaded", function () {
+      "use strict";
+      Spinner.show();
+      verificacionPermisos(["2"]);
+      firstLogin();
+      cargarFotoPerfil();
+      const calendarEl = document.getElementById("calendar");
+      selectTurno = document.getElementById("selectTurno");
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        firstDay: 1,
+        showNonCurrentDates: false,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: ""
+        },
+        events: [
+          {
+            // title: 'Evento de Ejemplo',
+            // start: '2024-12-10',
+            // end: '2024-12-12'
+          }
+        ],
+        /**
+         * Funcion que se ejecuta al hacer click en una celda del calendario.
+         * @param {Object} info - Informacion de la celda clickeada.
+         */
+        dateClick: function (info) {
+          clickCelda(info);
+
+        },
+        /**
+         * Function executed when an event is clicked on the calendar.
+         * @param {Object} info - Information about the clicked event.
+         */
+        eventClick: function (info) {
+          clickCelda(info, true);
+          // alert('Evento seleccionado: ' + info.event.start);
+        }
+      });
+
+      calendar.render();
+      colorLink();
+      getCalendar(cargarCalendario);
+      Desconectar.logout();
+    });
+
+    $("#modeSwitcher").on("click", function (e) {
+      e.preventDefault(), modeSwitch(), location.reload()
+    })
+
+    /**
+     * Cambia el color de los enlaces a negro si el tema oscuro esta desactivado.
+     */
+    function colorLink() {
+      const enlaces = document.querySelectorAll('a');
+      const dark = document.getElementById("darkTheme");
+      if (dark.hasAttribute('disabled')) {
+        enlaces.forEach(enlace => {
+          enlace.style.color = "black"; // Cambiar el color del texto
+        });
+      }
+    }
+
+    /**
+     * Carga el calendario con los turnos obtenidos de la base de datos.
+     * @param {Object} contenido - Contenido de la base de datos.
+     * @return {void}
+     */
+    async function cargarCalendario(contenido) {
+      // console.log(contenido);
+      const calendario = await contenido;
+      calendario.forEach(cal => {
+        let titulo;
+        switch (cal.turno) {
+          case "0":
+            break;
+          case "1":
+            titulo = "Mañana";
+            break;
+          case "2":
+            titulo = "Tarde";
+            break;
+          case "3":
+            titulo = "Noche";
+            break;
+          default:
+            titulo = ""
+        }
+        // if (cal.turno == 1) {
+        //   titulo = "Mañana";
+
+        // } else if (cal.turno == 2) {
+        //   titulo = "Tarde";
+
+        // } else {
+        //   titulo = "Noche";
+
+        // }
+        const newEvent = {
+          title: titulo,
+          start: cal.fecha,
+          end: cal.fecha,
+          allDay: true,
+          borderColor: color[cal.turno],
+          backgroundColor: color[cal.turno]
+        };
+        calendar.addEvent(newEvent);
+      });
+      Spinner.hide();
+    }
+
+
+    /**
+     * Comprueba si una fecha es valida para asignar un ticket.
+     * @param {Date} fecha - Fecha a comprobar.
+     * @return {Boolean} True si la fecha es valida, false en caso contrario.
+     * La fecha es valida si es posterior o igual al dia actual y dentro de los
+     * 2 dias siguientes.
+     */
+    function comprobarFecha(fecha) {
+      let diasDelay;
+      const today = new Date();
+      let threeDaysFromToday = new Date();
+      let diaActual = threeDaysFromToday.getDay();
+      diaActual === 0 ? 7 : diaActual;
+      diasDelay = 8 - diaActual;
+      //para hacer pruebas de cuando es viernes, y demas, ajustar la cantidad a sumar en relacion al dia que estas
+      // diaActual += 2;
+      if (diaActual == 7 || diaActual == 6) {
+        diasDelay = + 7;
+      }
+      threeDaysFromToday.setDate(today.getDate() + diasDelay);
+      threeDaysFromToday = convertToDateOnly(threeDaysFromToday);
+      if (fecha < threeDaysFromToday) {
+        mensaje = "No puedes modificar una fecha que sea de la semana actual, o de la semana siguiente si ya es sabado o domingo, ya que la planificación de los buses se hace el viernes";
+        return false;
+      }
+      return true;
+    }
+
+    /**
+     * Función que se ejecuta cuando se hace click en una celda del calendario.
+     * @param {Object} info - Información sobre la celda clickeada.
+     * @param {Boolean} evento - True si se ha clickeado en un evento, false en caso contrario.
+     * La función se encarga de comprobar si se puede asignar un ticket en la fecha clickeada.
+     * Si se puede, crea un nuevo evento en el calendario y actualiza o crea el registro
+     * correspondiente en la base de datos. Si no se puede, muestra un mensaje de error.
+     * Si se ha clickeado en un evento, si el evento ya existe, lo borra, en caso contrario,
+     * lo crea.
+     */
+    function clickCelda(info, evento = false) {
+      let fechaClick;
+      if (evento) {
+        fechaClick = convertToDateOnly(info.event.start);
+      } else {
+        fechaClick = info.dateStr;
+      }
+      // console.log('Fecha seleccionada: ' + fechaClick);
+      const newEventTitle = selectTurno.options[selectTurno.selectedIndex].text;
+      const existingEvents = calendar.getEvents();
+      const theSameEventExist = existingEvents.some(event => event.title === newEventTitle && event.startStr === fechaClick);
+      const eventInTheSameDay = existingEvents.some(event => event.startStr === fechaClick);
+      let comprobacion = comprobarFecha(fechaClick);
+      if (selectTurno.value != "") {
+        if (comprobacion) {
+          Spinner.show();
+
+          if (!theSameEventExist) {
+            if (eventInTheSameDay) {
+              const eventToDelete = existingEvents.find(event => event.startStr === fechaClick);
+              eventToDelete.remove();
+            }
+            const newEvent = {
+              title: selectTurno.options[selectTurno.selectedIndex].text,
+              start: fechaClick,
+              end: fechaClick,
+              allDay: true,
+              borderColor: color[selectTurno.value],
+              backgroundColor: color[selectTurno.value]
+            };
+
+            // Añadir el evento al calendario
+            calendar.addEvent(newEvent);
+            updateOrCreateCalendar(fechaClick, selectTurno.value);
+
+          } else {
+            const eventToDelete = existingEvents.find(event => event.title === newEventTitle && event.startStr === fechaClick);
+            eventToDelete.remove();
+            deleteCalendar(fechaClick);
+          }
+        } else {
+          SweetAlert.alert(mensaje);
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../css/bootstrap.css">
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+  <link rel="stylesheet" href="../css/feather.css">
+  <link rel="stylesheet" id="darkTheme" href="../css/dark.css">
+  <link rel="stylesheet" id="lightTheme" href="../css/light.css" disabled>
+  <script src="../js/sweetalert2.all.min.js"></script>
+  <link id="defaultThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/sweetalert2.min.css">
+  <link id="darkThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/dark.css" disabled>
+  <link rel="icon" href="../img/logo.jpg">
+  <title>Inicio</title>
+</head>
+
+<body>
+
+  <nav class="topnav navbar">
+    <div class="nav-item flex-grow-1 m-0" style="margin-right: 0 !important;">
+      <a href="indexConductor.html" class="navbar-brand" style="float: left;
+      position: absolute;
+      left: 0;
+      top: 7px;">
+        <img src="../img/logo.jpg" class="img-logo" alt="rubio Logo">
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link my-2" href="#" id="modeSwitcher" data-mode="dark">
+        <i class="fe fe-sun fe-16"></i>
+      </a>
+    </div>
+
+    <!-- <div class="nav-item nav-notif">
+      <a class="nav-link my-2" href="#" data-toggle="modal" data-target=".modal-notif">
+        <span class="fe fe-bell fe-16"></span>
+        <span class="dot dot-md bg-success"></span>
+      </a>
+    </div> -->
+
+    <div class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <span class="avatar avatar-sm mt-2">
+          <img id="imagenPerfil" src="../img/avatar_default.jpg" alt="..." class="avatar-img rounded-circle">
+        </span>
+      </a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+        <a class="dropdown-item py-2 text-center" href="/perfil.html">Perfil</a>
+        <a class="dropdown-item py-2 text-center bg-danger desconectar"
+          style="border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; cursor: pointer">Desconectar</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container botonera">
+    <div class="row botonera-fila">
+      <div class="col-12 botonera-celda d-flex justify-content-center">
+        <button id="escanViaje" type="button" class="btn btn-light botonera-boton">ESCANEAR<br>VIAJE</button>
+      </div>
+    </div>
+    <div class="row botonera-fila">
+      <div class="col-12 botonera-celda d-flex justify-content-center">
+        <button id="historico" type="button" class="btn btn-primary botonera-boton">HISTÓRICO</button>
+      </div>
+    </div>
+  </div>
+<footer>
+  <footer>
+    <p class="mt-1 mb-0 opacity-50">AUTOBUSES RUBIO ALONSO</p>
+    <p class="mb-0 opacity-50">ITS GESTIÓN</p>
+  </footer>
+</footer>
+  <div
+    class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <script src="../js/jquery-3.7.1.min.js"></script>
+  <script src="../js/bootstrap.bundle.min.js"></script>
+  <script src="../js/bdConnection.js"></script>
+  <script src="../js/bdUsuarios.js"></script>
+  <script src="../js/custom.js"></script>
+  <script src="../js/usuario.js"></script>
+  <script>
+
+    let escanViaje;
+    let historico;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      "use strict";
+      verificacionPermisos(["3"]);
+      cargarFotoPerfil();
+
+      escanViaje = document.getElementById("escanViaje");
+      historico = document.getElementById("historico");
+
+      escanViaje.addEventListener('click', function () {
+        window.location.href = 'escaner.html';
+      });
+      historico.addEventListener("click", function () {
+        window.location.href = "../historicoViajes.html";
+      });
+
+      setTimeout(() => {
+        Spinner.hide();
+      }, 2000);
+
+      Desconectar.logout();
+    });
+
+    $("#modeSwitcher").on("click", function (e) {
+      e.preventDefault(), modeSwitch(), location.reload()
+    })
+  </script>
+</body>
+
+</html>

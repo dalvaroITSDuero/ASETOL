@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head runat="server">
+  <title>INSCRIPCIONES ITS DUERO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+</head>
+<!-- <body onload="document.redirect.submit(); return false"> vaina original -->
+ 
+<body>
+  <!-- <form method="post" name="redirect" action="https://sis.redsys.es/sis/realizarPago" style="visibility: hidden;"> -->
+  <form method="post" name="redirect" action="https://sis-t.redsys.es:25443/sis/realizarPago"
+    style="visibility: hidden;">
+    <!--esto es con el link de la pasarela de prueba-->
+    <input type="text" name="Ds_SignatureVersion" value="HMAC_SHA256_V1" />
+    <!-- <input type="text" id="param1" name="Ds_MerchantParameters" value="eyJEU19NRVJDSEFOVF9BTU9VTlQiOiIxMTAwMCIsIkRTX01FUkNIQU5UX09SREVSIjoiUEVEMDAxIiwiRFNfTUVSQ0hBTlRfTUVSQ0hBTlRDT0RFIjoiMjI5MDM5NzE0IiwiRFNfTUVSQ0hBTlRfQ1VSUkVOQ1kiOiI5NzgiLCJEU19NRVJDSEFOVF9UUkFOU0FDVElPTlRZUEUiOiIwIiwiRFNfTUVSQ0hBTlRfVEVSTUlOQUwiOiIxMDEiLCJEU19NRVJDSEFOVF9NRVJDSEFOVFVSTCI6Imh0dHBzOi8vYXV0b2J1c2VzcnViaW8uZ2VzdGlvbmFuZG8ub25saW5lL1dlYlNlcnZpY2VQYWdvLmFzbXg/b3A9Q29uZmlybWFyUGFnbyIsIkRTX01FUkNIQU5UX1VSTE9LIjoiaHR0cHM6Ly9hdXRvYnVzZXNydWJpby5nZXN0aW9uYW5kby5vbmxpbmUvV2ViU2VydmljZVBhZ28uYXNteD9vcD1QYWdvT2siLCJEU19NRVJDSEFOVF9VUkxLTyI6Imh0dHBzOi8vYXV0b2J1c2VzcnViaW8uZ2VzdGlvbmFuZG8ub25saW5lL1dlYlNlcnZpY2VQYWdvLmFzbXg/b3A9UGFnb0tvIn0="/> -->
+    <input type="text" id="param1" name="Ds_MerchantParameters" />
+    <!-- <input type="text" id="param2" name="Ds_Signature" value="fHGU5ndVCP0kEEopq6/NqJUoGhs3Z/OpLqoVyL54K+c="/> -->
+    <input type="text" id="param2" name="Ds_Signature" />
+    <br />
+    <input type="submit" name="enviar" value="Enviar" />
+  </form>
+  <div style="padding: 20px; font-family: Arial; font-size: 2em; color: #000;">CONECTANDO CON LA PLATAFORMA DE PAGO ...
+  </div>
+</body>
+<script>
+  let Ds_Merchant_MerchantParameters;
+  let Ds_Signature;
+  document.addEventListener('DOMContentLoaded', function () {
+    Ds_Merchant_MerchantParameters = document.getElementById("param1");
+    Ds_Signature = document.getElementById("param2");
+
+    const params = new URLSearchParams(window.location.search);
+    // Leer los valores
+    const param1 = params.get('Ds_Merchant_MerchantParameters');
+    const param2 = params.get('Ds_Signature');
+    Ds_Merchant_MerchantParameters.value = param1;
+    Ds_Signature.value = param2;
+    redireccion();
+  });
+
+  /**
+   * Realiza la redirección a la pasarela de pago.
+   * Llama al formulario redirect y ejecuta el submit.
+   * @return {boolean} false para evitar el comportamiento por defecto del evento.
+   */
+  function redireccion() {
+    document.redirect.submit(); return false
+  }
+</script>
+
+</html>

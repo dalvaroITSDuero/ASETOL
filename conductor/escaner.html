@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../css/bootstrap.css">
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+  <link rel="stylesheet" href="../css/feather.css">
+  <link rel="stylesheet" id="darkTheme" href="../css/dark.css">
+  <link rel="stylesheet" id="lightTheme" href="../css/light.css" disabled>
+  <script src="../js/sweetalert2.all.min.js"></script>
+  <link id="defaultThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/sweetalert2.min.css">
+  <link id="darkThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/dark.css" disabled>
+  <link rel="icon" href="../img/logo.jpg">
+  <style>
+    #container {
+      height: 70vh;
+    }
+
+    #btnPermisos {
+      width: 50vh !important;
+      height: 50vh !important;
+      font-size: 3em;
+    }
+
+    #reader {
+      width: 80vw;
+      /* 80% del ancho de la ventana */
+      max-width: 400px;
+      /* Tamaño máximo */
+      height: auto;
+      /* Ajuste automático de altura */
+      margin: 0 auto;
+      /* Centrado horizontal */
+      border: 2px solid #ccc;
+      /* Borde opcional */
+      border-radius: 10px;
+      /* Borde redondeado opcional */
+    }
+  </style>
+  <title>Escaner</title>
+</head>
+
+<body>
+
+  <nav class="sticky-top navbar">
+    <div class="nav-item flex-grow-1 m-0" style="margin-right: 0 !important;">
+      <a href="indexConductor.html" class="navbar-brand" style="float: left;
+      position: absolute;
+      left: 0;
+      top: 7px;">
+        <img src="../img/logo.jpg" class="img-logo" alt="rubio Logo">
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link my-2" href="#" id="modeSwitcher" data-mode="dark">
+        <i class="fe fe-sun fe-16"></i>
+      </a>
+    </div>
+
+    <!-- <div class="nav-item nav-notif">
+      <a class="nav-link my-2" href="#" data-toggle="modal" data-target=".modal-notif">
+        <span class="fe fe-bell fe-16"></span>
+        <span class="dot dot-md bg-success"></span>
+      </a>
+    </div> -->
+
+    <div class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <span class="avatar avatar-sm mt-2">
+          <img id="imagenPerfil" src="../img/avatar_default.jpg" alt="..." class="avatar-img rounded-circle">
+        </span>
+      </a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+        <a class="dropdown-item py-2 text-center" href="/perfil.html">Perfil</a>
+        <a class="dropdown-item py-2 text-center bg-danger desconectar"
+          style="border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; cursor: pointer">Desconectar</a>
+      </div>
+    </div>
+  </nav>
+
+
+
+
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <h2 class="mt-4">Escaner</h2>
+      <div id="container" class="d-flex justify-content-center align-items-center">
+
+        <button class="btn btn-secondary d-none" type="button" id="btnPermisos">ESCANEAR</button>
+        <div class="d-none rounded" id="reader"></div>
+      </div>
+    </div> <!-- .row -->
+  </div>
+
+
+
+  <div
+    class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <script src="../js/jquery-3.7.1.min.js"></script>
+  <script src="../js/bootstrap.bundle.min.js"></script>
+  <script src="../js/html5-qrcode.min.js"></script>
+  <script src="../js/crypto-js.min.js"></script>
+  <script src="../js/custom.js"></script>
+  <script src="../js/bdConnection.js"></script>
+  <script src="../js/bdUsuarios.js"></script>
+  <script src="../js/bdCalendario.js"></script>
+  <script src="../js/bdTickets.js"></script>
+  <script src="../js/bdViaje.js"></script>
+  <script src="../js/usuario.js"></script>
+  <script src="../js/calendario.js"></script>
+  <script src="../js/ticket.js"></script>
+  <script src="../js/empresa.js"></script>
+  <script src="../js/viaje.js"></script>
+  <script>
+
+    let reader;
+    let btnPermisos;
+
+    let fechaActual = new Date();
+    fechaActual = convertToDateOnly(fechaActual);
+    let contradorEntrada = 0;
+    // const qrCodeReader = new Html5Qrcode("reader");
+
+    document.addEventListener("DOMContentLoaded", function () {
+      "use strict";
+      Spinner.show();
+      verificacionPermisos(["3"]);
+      cargarFotoPerfil();
+
+      btnPermisos = document.getElementById("btnPermisos");
+      reader = document.getElementById("reader");
+
+      btnPermisos.addEventListener('click', function () {
+        escanear();
+      });
+      escanear();
+      Desconectar.logout();
+    });
+
+    $("#modeSwitcher").on("click", function (e) {
+      e.preventDefault(), modeSwitch(), location.reload()
+    })
+
+
+    /**
+     * Verifica si el usuario ha concedido permiso para acceder a la cámara del dispositivo.
+     * Si el permiso no ha sido concedido, solicita el permiso al usuario y devuelve true si el usuario lo concede.
+     * Si el permiso ha sido denegado, devuelve false.
+     * @returns {Promise<boolean>} Promesa que se resuelve con true si el permiso ha sido concedido, o false si ha sido denegado.
+     */
+    async function checkCameraPermissions() {
+      try {
+        // Comprobar permisos usando la Permissions API
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+
+        if (permissionStatus.state === "granted") {
+          console.log("Permiso de cámara concedido");
+
+          return true;
+        } else if (permissionStatus.state === "prompt") {
+          console.log("Permiso de cámara no solicitado aún. Solicitando...");
+          // Solicitar permiso usando getUserMedia
+          await navigator.mediaDevices.getUserMedia({ video: true });
+          if (contradorEntrada == 0) {
+            location.reload();
+            contradorEntrada++;
+            // deleteCookie("entrada");
+            // setCookie("entrada", 1, 1);
+          }
+          return true;
+        } else {
+          btnPermisos.classList.remove('d-none');
+          console.warn("Permiso de cámara denegado");
+          return false;
+        }
+      } catch (error) {
+        btnPermisos.classList.remove('d-none');
+        console.error("Error al verificar permisos de cámara:", error);
+        return false;
+      }
+    }
+
+    /**
+     * Inicia el escáner QR en la cámara del dispositivo. Antes de iniciar, verifica si el usuario ha concedido
+     * permiso para acceder a la cámara del dispositivo. Si el permiso no ha sido concedido, solicita el
+     * permiso al usuario y devuelve true si el usuario lo concede. Si el permiso ha sido denegado, devuelve
+     * false.
+     * @returns {Promise<void>}
+     */
+    async function escanear() {
+      const hasPermission = await checkCameraPermissions();
+      const qrCodeReader = new Html5Qrcode("reader");
+      if (hasPermission) {
+        reader.classList.remove('d-none');
+        btnPermisos.classList.add('d-none');
+
+        qrCodeReader.start(
+          { facingMode: "environment" }, // Cámara trasera
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+          },
+          (decodedText) => {
+            const audio = new Audio('../sound/escaner.mp3');
+            audio.pause();
+            audio.play();
+            // console.log("Texto detectado:", decodedText);
+            lanzarViaje(decodedText);
+            qrCodeReader.stop(); // Detener después de leer
+            // alert(`QR Detectado: ${decodedText}`);
+            // reader.classList.add('d-none');
+            // btnPermisos.classList.remove('d-none');
+          },
+          (error) => {
+            // console.warn("Error al leer QR:", error);
+          }
+        ).catch((err) => {
+          console.error("Error al iniciar el escáner QR:", err);
+        });
+      } else {
+        SweetAlert.alert("Se necesitan permisos para usar la cámara.");
+      }
+    }
+
+    /**
+     * Lanza un viaje utilizando los datos proporcionados. 
+     * Muestra un spinner durante la operación y actualiza el viaje 
+     * descifrando los datos de entrada. Llama a una función para obtener 
+     * el resultado del viaje.
+     * 
+     * @param {string} datos - Datos cifrados del viaje que necesitan ser descifrados.
+     * @returns {Promise<void>}
+     */
+    async function lanzarViaje(datos) {
+      Spinner.show();
+      // alert(Encryptar.descifrar(datos));
+      await updateViaje(Encryptar.descifrar(datos), getViajeResult);
+    }
+
+    /**
+     * Muestra el resultado del viaje. Si se ha cangeado el viaje, muestra un mensaje
+     * de confirmación. Si no se ha cangeado, muestra un mensaje de error.
+     * Vuelve a habilitar el escáner y oculta el spinner.
+     * @param {Object} datos - Un objeto que contiene el estado, mensaje y datos del usuario.
+     * @returns {Promise<void>}
+     */
+    async function getViajeResult(datos) {
+      console.log();
+      datos = await datos;
+      // alert("entrado en getViajeResult" + datos);
+      if (datos) {
+        if (datos.estado == 1) {
+          SweetAlert.successfull((datos.usuario.nombre + " " + datos.usuario.apellidos + " ha cangeado su viaje."), "Cangeado", escanear);
+        } else if (datos.estado == 0) {
+          SweetAlert.alert((datos.mensaje + ": " + datos.usuario.nombre + " " + datos.usuario.apellidos), "Oops...", escanear);
+        } else {
+          SweetAlert.alert("Algo anda mal");
+        }
+      }
+      Spinner.hide();
+    }
+
+  </script>
+</body>
+
+</html>

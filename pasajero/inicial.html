@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../css/bootstrap.css">
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+  <link rel="stylesheet" href="../css/feather.css">
+  <link rel="stylesheet" id="darkTheme" href="../css/dark.css">
+  <link rel="stylesheet" id="lightTheme" href="../css/light.css" disabled>
+  <script src="../js/sweetalert2.all.min.js"></script>
+  <link id="defaultThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/sweetalert2.min.css">
+  <link id="darkThemeSweetAlert" rel="stylesheet" href="../css/sweetalert/dark.css" disabled>
+  <link rel="icon" href="../img/logo.jpg">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <nav class="sticky-top navbar">
+    <div class="nav-item flex-grow-1 m-0" style="margin-right: 0 !important;">
+      <a href="indexPasajero.html" class="navbar-brand" style="float: left;
+      position: absolute;
+      left: 0;
+      top: 7px;">
+        <img src="../img/logo.jpg" class="img-logo" alt="rubio Logo">
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link my-2" href="#" id="modeSwitcher" data-mode="dark">
+        <i class="fe fe-sun fe-16"></i>
+      </a>
+    </div>
+
+    <!-- <div class="nav-item nav-notif">
+      <a class="nav-link my-2" href="#" data-toggle="modal" data-target=".modal-notif">
+        <span class="fe fe-bell fe-16"></span>
+        <span class="dot dot-md bg-success"></span>
+      </a>
+    </div> -->
+
+    <div class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <span class="avatar avatar-sm mt-2">
+          <img id="imagenPerfil" src="../img/avatar_default.jpg" alt="..." class="avatar-img rounded-circle">
+        </span>
+      </a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+        <a class="dropdown-item py-2 text-center bg-danger desconectar"
+          style="border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; cursor: pointer">Desconectar</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10 col-xl-8">
+        <h2 class="mt-2">Perfil</h2>
+        <div class="my-4">
+          <form class="needs-validation" novalidate>
+            <div class="row mt-3 align-items-center">
+              <div class="col-md-3 text-center mb-5">
+                <div class="avatar avatar-xl">
+                  <label for="imgUsuario" style="cursor: pointer;">
+                    <img src="/img/avatar_default.jpg" alt="..." class="avatar-img rounded-circle" id="imgUser">
+                  </label>
+                  <input type="file" id="imgUsuario" style="display: none;" accept="image/png, image/jpeg">
+                </div>
+              </div>
+              <div class="col">
+                <div class="row align-items-center">
+                  <div class="col-md-7">
+                    <h4 class="mb-1" id="nombreCompleto"></h4>
+                    <p class="small mb-2" id="empresa"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr class="my-4">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="modUbicacion">Ubicacion de Salida <span class="text-danger">*</span></label>
+                <select id="modUbicacion" class="form-control" required>
+                  <option selected="true" value="">Seleccione una ubicación</option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="modTicket">Tipo de ticket <span class="text-danger">*</span></label>
+                <select id="modTicket" class="form-control" required>
+                  <option value="">Seleccione un tipo de ticket</option>
+                  <option value="68">Diario (7€)</option>
+                  <option value="77">Mensual (110€)</option>
+                </select>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="modEmpresa">Empresa <span class="text-danger">*</span></label>
+                <select id="modEmpresa" class="form-control" required>
+                  <option selected="true" value="">Seleccione una empresa</option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <hr class="my-4">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </form>
+        </div> <!-- /.card-body -->
+      </div> <!-- /.col-12 -->
+    </div> <!-- .row -->
+  </div>
+  <div
+    class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <script src="../js/jquery-3.7.1.min.js"></script>
+  <script src="../js/bootstrap.bundle.min.js"></script>
+  <script src="../js/custom.js"></script>
+  <script src="../js/bdConnection.js"></script>
+  <script src="../js/bdUsuarios.js"></script>
+  <script src="../js/bdUbicaciones.js"></script>
+  <script src="../js/bdEmpresas.js"></script>
+  <script src="../js/usuario.js"></script>
+  <script src="../js/empresa.js"></script>
+  <script>
+
+    let empresa;
+    let ticket;
+    let ubicacionSelect;
+    let nombreCompleto
+    let empresaSelect;
+    let tipoTicketSelect;
+    let usuario;
+    let imgUsuario;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      "use strict";
+      verificacionPermisos("2");
+      firstLogin();
+      nombreCompleto = document.getElementById("nombreCompleto");
+      empresa = document.getElementById("empresa");
+      ticket = document.getElementById("modTicket");
+      ubicacionSelect = document.getElementById("modUbicacion");
+      empresaSelect = document.getElementById("modEmpresa");
+      tipoTicketSelect = document.getElementById("modTicket");
+      imgUsuario = document.getElementById("imgUsuario");
+
+      /**
+       * Inicializa el perfil del usuario.
+       * Muestra el spinner.
+       * Obtiene las empresas y las ubicaciones y las muestra en el perfil.
+       * Obtiene el usuario por su id y lo muestra en el perfil.
+       * @async
+       */
+      async function init() {
+        Spinner.show();
+        getEmpresas(generarEmpresas);
+        getUbicaciones(generarUbicaciones);
+        setTimeout(async () => {
+          await getUsuarioById(getCookie("usuario"), successLoadPerfil);
+        }, 1000);
+      }
+      init();
+
+      const forms = document.querySelectorAll('.needs-validation');
+      Array.from(forms).forEach(function (form) {
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault(); // Siempre prevenir el envío predeterminado
+          event.stopPropagation();
+
+          if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return; // Si no es válido, no hacemos nada más
+          }
+
+          // Llamada al servidor
+          try {
+            Spinner.show();
+            var usuarioEditado = new Usuario(
+              usuario.id, usuario.dni, usuario.nombre, usuario.apellidos, null, usuario.telefono,
+              usuario.email, empresaSelect.value, true, usuario.permisos,
+              tipoTicketSelect.value, ubicacionSelect.value, usuario.token
+            )
+            usuarioEditado.img = usuario.img;
+            await usuarioUpdate(usuarioEditado);
+          } catch (error) {
+            console.error("Error en la validación del servidor:", error);
+            Sweeralert.alert("Ocurrió un error. Intenta nuevamente.");
+          }
+
+        }, false);
+      });
+
+      imgUsuario.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+
+        if (file) {
+          const reader = new FileReader();
+
+          // Se encarga de leer el contenido de un archivo (en este caso
+          // una imagen) y lo pasa a una variable en formato Base64
+          // que se puede utilizar como "src" para una etiqueta <img>
+          // o para guardar en la base de datos.
+          // Guarda la imagen en la variable "usuario.img" para que
+          // se pueda utilizar en el perfil del usuario.
+          reader.onload = function (event) {
+            const base64Image = event.target.result; // Imagen en Base64 con prefijo
+            imgUser.src = base64Image;
+            usuario.img = base64Image;
+          };
+
+          reader.readAsDataURL(file);
+        }
+      });
+      Desconectar.logout();
+
+    });
+
+    $("#modeSwitcher").on("click", function (e) {
+      e.preventDefault(), modeSwitch(), location.reload()
+    })
+
+
+    /**
+     * Actualiza los valores de los elementos de la pantalla de perfil
+     * con los datos del usuario pasado como parametro
+     * @param {Object} usu El objeto usuario con los datos a mostrar
+     */
+    async function successLoadPerfil(usu) {
+      try {
+        usuario = usu;
+        // console.log(usuario);
+        nombreCompleto.innerHTML = usuario.nombre + ", " + usuario.apellidos;
+        Spinner.hide();
+      } catch (error) {
+        console.error("algo anda mal :\n" + error);
+        Spinner.hide();
+      }
+    }
+
+    /**
+     * Funcion que se encarga de procesar la respuesta del servidor
+     * cuando se intenta actualizar el perfil del usuario
+     * @param {Object} data La respuesta del servidor
+     */
+    async function successUpdate(data) {
+      try {
+        if (data == 1) {
+          SweetAlert.successfull("Actualizado correctamente", null, redireccionUsuarioNuevo);
+        } else {
+          SweetAlert.alert("El usuario no se ha actualizado correctamente");
+        }
+        localStorage.removeItem("imagenPerfil");
+        Spinner.hide();
+      } catch (error) {
+        console.error("algo anda mal :\n" + error);
+        Spinner.hide();
+      }
+    }
+
+    function redireccionUsuarioNuevo(){
+      window.location.href = "/pasajero/indexPasajero.html";
+    }
+  </script>
+</body>
+
+</html>

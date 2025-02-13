@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/sweetalert2.all.min.js"></script>
+    <link id="defaultThemeSweetAlert" rel="stylesheet" href="css/sweetalert/sweetalert2.min.css">
+    <link id="darkThemeSweetAlert" rel="stylesheet" href="css/sweetalert/dark.css" disabled>
+    <link rel="stylesheet" id="darkTheme" href="css/dark.css">
+    <link rel="stylesheet" id="lightTheme" href="css/light.css" disabled>
+    <link rel="icon" href="img/logo.jpg">
+    <link rel="manifest" href="/manifest.json">
+    <script src="js/custom.js"></script>
+    <style>
+        body {
+            background: url(../img/fondo.jpg) no-repeat center center fixed;
+        }
+
+        #div-instalar-app {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            background-color: #fff;
+            opacity: 0.9;
+            border-top: 1px solid #999;
+            color: white;
+            background: #000;
+            box-shadow: 0 13px 22px 0 rgba(0, 0, 0, 0.18), inset 0 1px 3px 0 #444;
+            padding: 5px;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            z-index: 9;
+        }
+
+        #div-instalar-app .right {
+            padding-left: 20px;
+        }
+
+        #div-instalar-app .title {
+            padding-left: 2vh;
+            padding-top: 1vh;
+            text-transform: uppercase;
+            font-size: 1em;
+        }
+    </style>
+    <title>Autobuses rubio</title>
+</head>
+
+<body>
+    <div class="wrapper vh-100">
+        <div class="row align-items-center h-100">
+            <form class="col-10 m-auto rounded-3 py-3 container needs-validation" novalidate>
+                <h1 class="h2 mb4 text-center">Iniciar Sesión</h1>
+                <div class="form-group">
+                    <input type="text" class="form-control form-control-lg" id="DNILogin" placeholder="DNI/NIF"
+                        required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control form-control-lg" id="passwordLogin"
+                        placeholder="Contraseña" required>
+                </div>
+                <div class="checkbox mb-3 d-flex justify-content-between">
+                    <label><input type="checkbox" id="remember"> Recuerdame</label>
+                    <a href="register.html">Registrarme</a>
+                </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit" id="entrarLogin">Entrar</button>
+                <p style="cursor: pointer" id="version" class="mt-2 mb-0">V1.0.1</p>
+                <p class="mt-1 mb-0 opacity-50">AUTOBUSES RUBIO ALONSO</p>
+                <p class="mb-0 opacity-50">ITS GESTIÓN</p>
+
+            </form>
+        </div>
+    </div>
+    <div
+        class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+        <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+    <div id="div-instalar-app" class="d-none">
+        <div class="col-md-7 col-7">
+            <h1 class="title">Instala <b>nuestra app</b><br>en tu móvil <i class="fe fe-smartphone fe-16"></i>
+            </h1>
+        </div>
+        <div class="col-md-5 col-5">
+            <div class="btn-app" id="btn-instalar-app" onclick="instalarApp()">
+                <div class="btn-cntnr">
+                    <div class="btn btn-secondary">
+                        Instalar App
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bdConnection.js"></script>
+    <script src="js/bdUsuarios.js"></script>
+    <script src="js/usuario.js"></script>
+    <script src="/service-worker.js"></script>
+    <script>
+        let deferredPrompt;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            'use strict';
+
+            //variables globales
+            const DNILogin = document.getElementById('DNILogin');
+            const passwordLogin = document.getElementById('passwordLogin');
+            const recordar = document.getElementById('remember');
+            verificacionLogin();
+
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(function (form) {
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault(); // Siempre prevenir el envío predeterminado
+                    event.stopPropagation();
+
+                    if (!form.checkValidity()) {
+                        form.classList.add('was-validated');
+                        return; // Si no es válido, no hacemos nada más
+                    }
+
+                    // Llamada al servidor
+                    try {
+                        await entradaLogin(DNILogin.value, passwordLogin.value, recordar.checked);
+                    } catch (error) {
+                        console.error("Error en la validación del servidor:", error);
+                        SweetAlert.alert("Ocurrió un error. Intenta nuevamente.");
+                    }
+                }, false);
+            });
+            Spinner.hide();
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+                    console.log('Service Worker registered with scope:',
+                        registration.scope);
+                }).catch((error) => {
+                    console.log('Service Worker registration failed:', error);
+                });
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Previene la aparición automática del banner
+            e.preventDefault();
+            // Guarda el evento para que puedas desencadenarlo más tarde
+            deferredPrompt = e;
+            console.log(e);
+            // Muestra el botón de instalación (puedes hacerlo visiblemediante CSS)
+            const installDiv = document.getElementById('div-instalar-app');
+            const installButton = document.getElementById('btn-instalar-app');
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(navigator.userAgent)) {
+                installDiv.classList.remove('d-none');
+            }
+        });
+
+        function instalarApp() {
+            if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent || navigator.vendor || window.opera)) {
+                Swal.fire({
+                    title: 'Tutorial',
+                //     html: `
+                //     <p>Deberás darle en el botón de abajo en el medio, a compartir, y ahí seleccionar la opción <strong>Añadir a pantalla de inicio</strong></p>
+                // `,
+                    html: `
+                    <video id="myVideo" width="220" height="500" autoplay loop>
+                        <source src="img/tutorial.mp4" type="video/mp4">
+                        Tu navegador no soporta el video.
+                    </video>
+                `,
+                    showConfirmButton: false, // Opcional: Oculta el botón de confirmación
+                    allowOutsideClick: true,  // Permite cerrar el SweetAlert haciendo clic fuera
+                });
+            } else if ((/iPad|iPhone|iPod/.test(navigator.userAgent)) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+                alertify.alert()
+                    .setting({
+                        'label': 'Cerrar',
+                        'title': 'Instalar app',
+                        'onok': function () { }
+                    }).set({
+                        onshow: function () {
+                            $(".ajs-header, .ajs-commands, .ajs-reset").remove();
+                            $(".ajs-content").css("padding", "0 !important");
+                            $(".ajs-content").html("<img src='img/tutorial-instalar - app.gif' style='width: 90 % '/>");
+                        }
+                    }).show();
+            } else {
+                // Esconde el botón
+                $("#div-instalar-app").css("display", "none");
+                // Muestra el prompt de instalación
+                deferredPrompt.prompt();
+                // Espera la respuesta del usuario
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                        // Solicitar permiso para enviar notificaciones
+                    } else {
+                        console.log('User dismissed the A2HS prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+        
+        if ((/iPad|iPhone|iPod/.test(navigator.userAgent)) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+            if (!window.navigator.standalone) {
+                const installDiv = document.getElementById('div-instalar-app');
+                installDiv.classList.remove('d-none');
+            }
+        }
+
+        document.getElementById('version').addEventListener('click', function () {
+            Swal.fire({
+                title: "Versión",
+                html: '<h3>Cambios de versión:</h3>\
+                <ul style="text-align: left">\
+                <li>Seleccionar turnos mediante el calendario</li>\
+                <li>Historico de viajes</li>\
+                <li>Foto de perfil, y primer login para rellenar los últimos datos</li>\
+                </ul>',
+                icon: "question",
+            });
+
+        });
+
+    </script>
+</body>
+
+</html>

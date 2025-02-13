@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+  <link rel="stylesheet" href="css/feather.css">
+  <link rel="stylesheet" id="darkTheme" href="css/dark.css">
+  <link rel="stylesheet" id="lightTheme" href="css/light.css" disabled>
+  <script src="js/sweetalert2.all.min.js"></script>
+  <link id="defaultThemeSweetAlert" rel="stylesheet" href="css/sweetalert/sweetalert2.min.css">
+  <link id="darkThemeSweetAlert" rel="stylesheet" href="css/sweetalert/dark.css" disabled>
+  <link rel="icon" href="img/logo.jpg">
+  <title>Historico Viajes</title>
+  <style>
+    #btnFiltro {
+      background-color: transparent;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="sticky-top navbar">
+    <div class="nav-item flex-grow-1 m-0" style="margin-right: 0 !important;">
+      <a id="logoRubio" href="pasajero/indexPasajero.html" class="navbar-brand" style="float: left;
+      position: absolute;
+      left: 0;
+      top: 7px;">
+        <img src="img/logo.jpg" class="img-logo" alt="rubio Logo">
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link my-2" href="#" id="modeSwitcher" data-mode="dark">
+        <i class="fe fe-sun fe-16"></i>
+      </a>
+    </div>
+
+    <!-- <div class="nav-item nav-notif">
+      <a class="nav-link my-2" href="#" data-toggle="modal" data-target=".modal-notif">
+        <span class="fe fe-bell fe-16"></span>
+        <span class="dot dot-md bg-success"></span>
+      </a>
+    </div> -->
+
+    <div class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <span class="avatar avatar-sm mt-2">
+          <img id="imagenPerfil" src="img/avatar_default.jpg" alt="..." class="avatar-img rounded-circle">
+        </span>
+      </a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+        <a class="dropdown-item py-2 text-center" href="perfil.html">Perfil</a>
+        <a class="dropdown-item py-2 text-center bg-danger desconectar"
+          style="border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; cursor: pointer">Desconectar</a>
+      </div>
+    </div>
+  </nav>
+  <!-- fin del navbar -->
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-12">
+        <h2 class="mt-2">Historico viajes</h2>
+      </div>
+      <div class="col-12 my-2 d-none" id="filtros">
+        <div class="row">
+          <h3 class="col-10">Filtrado</h3>
+          <button id="btnFiltro" class="col-2" data-bs-toggle="collapse" data-bs-target="#selectores"
+            aria-expanded="false" aria-controls="collapseExample">
+            <span class="fe fe-filter fe-24"></span>
+          </button>
+        </div>
+        <div id="selectores" class="collapse">
+          <!-- <div id="selectores"> -->
+          <span for="selectUsuarios">Usuario</span>
+          <select name="Usuarios" id="selectUsuarios" class="form-control">
+            <option value="0">Seleccione</option>
+          </select>
+          <br>
+          <span for="selectTurnos">Turno</span>
+          <select name="Turnos" id="selectTurnos" class="form-control">
+            <option value="0">Seleccione</option>
+            <option value="1">Mañanas</option>
+            <option value="2">Tardes</option>
+            <option value="3">Noches</option>
+          </select>
+          <br>
+          <span for="inputFecha">Fecha</span>
+          <input type="date" id="fecha" name="fecha" class="form-control">
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="my-4">
+          <div class="accordion" id="accordionExample">
+
+          </div>
+        </div> <!-- /.card-body -->
+      </div> <!-- /.col-12 -->
+    </div> <!-- .row -->
+  </div>
+
+  <div
+    class="loadingOverlay d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+    <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <script src="js/jquery-3.7.1.min.js"></script>
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="js/bdConnection.js"></script>
+  <script src="js/bdUsuarios.js"></script>
+  <script src="js/bdEmpresas.js"></script>
+  <script src="js/bdUbicaciones.js"></script>
+  <script src="js/custom.js"></script>
+  <script src="js/usuario.js"></script>
+  <script src="js/ubicacion.js"></script>
+  <script src="js/empresa.js"></script>
+  <script src="js/bdViaje.js"></script>
+  <script src="js/viaje.js"></script>
+  <script>
+
+    let usuario;
+    let contenedor;
+    let filtros;
+    let selectUsuarios;
+    let selectTurnos;
+    let fecha;
+    let formulario;
+    let conductor;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      "use strict";
+      verificacionPermisos(["2", "3"]);
+      cargarFotoPerfil();
+      contenedor = document.getElementById('accordionExample');
+      filtros = document.getElementById('filtros');
+      selectUsuarios = document.getElementById('selectUsuarios');
+      selectTurnos = document.getElementById('selectTurnos');
+      fecha = document.getElementById('fecha');
+      formulario = document.querySelectorAll('.form-control');
+
+      //iniciar el filtrado en el día de hoy
+      fecha.value = convertToDateOnly(Date.now());
+
+      //lisener para cuando detecta un cambio en cualquiera de los filtros
+      Array.from(formulario).forEach(function (form) {
+        form.addEventListener('change', async function (event) {
+          getAllTravelsFilter(reloadContain, selectUsuarios.value, selectTurnos.value, (fecha.value ? fecha.value : "0"));
+        });
+      });
+
+      /**
+       * Inicializa la pantalla de historico de viajes. Si se trata de un conductor,
+       * se muestra el panel de filtros y se cargan los viajes y los pasajeros.
+       * Si se trata de un pasajero, se cargan los viajes del usuario.
+       */
+      async function init() {
+        Spinner.show();
+        let logorubio = document.getElementById("logoRubio");
+        let redireccion = getCookie("tipo") != "3" ? "/pasajero/indexPasajero.html" : "/conductor/indexConductor.html";
+        logorubio.href = redireccion;
+        if (getCookie("tipo") == "3") {
+          filtros.classList.remove('d-none');
+          getAllPassengers(generarSelectUsuarios);
+          conductor = true;
+          getAllTravelsFilter(reloadContain, selectUsuarios.value, selectTurnos.value, (fecha.value ? fecha.value : "0"));
+        }else{
+          getViajesById(successLoadViajes, (getCookie("tipo") == "3" ? true : false));
+        }
+      }
+      init();
+
+      Desconectar.logout();
+    });
+
+    $("#modeSwitcher").on("click", function (e) {
+      e.preventDefault(), modeSwitch(), location.reload()
+    })
+
+
+    /**
+     * Actualiza los valores de los elementos de la pantalla de perfil
+     * con los datos del usuario pasado como parametro
+     * @param {Object} usuario El objeto usuario con los datos a mostrar
+     */
+    async function successLoadViajes(viajes, conduc) {
+      try {
+        viajes = await viajes;
+        conductor = await conduc;
+        // console.log(viajes, conductor);
+        if (viajes.length != 0) {
+          if (conductor) {
+            usuario = viajes[0].conductor;
+          } else {
+            usuario = viajes[0].usuario;
+          }
+          // console.log(usuario);<
+          contenedor.innerHTML = "";
+          viajes.forEach(viaje => {
+            generarAccordion(viaje, conductor);
+          });
+        } else {
+          let contenido = '  <div class="accordion-item">\
+    <h2 class="accordion-header">\
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">\
+        No hay viajes\
+      </button>\
+    </h2>\
+  </div>';
+          contenedor.innerHTML += contenido;
+        }
+
+        Spinner.hide();
+      } catch (error) {
+        console.error("algo anda mal :\n" + error);
+        Spinner.hide();
+      }
+    }
+
+    /**
+     * Genera las opciones del select de usuarios en la pantalla de historico de viajes.
+     * @param {Array} usuarios - El array de objetos usuario a mostrar.
+     */
+    async function generarSelectUsuarios(usuarios) {
+      // console.log(usuarios);
+      usuarios.forEach((usuario) => {
+        const option = document.createElement("option");
+        option.value = usuario.id;
+        option.text = usuario.nombre + ' ' + usuario.apellidos + ' ---- ' + usuario.dni;
+        selectUsuarios.add(option);
+      });
+      Spinner.hide();
+    }
+
+    /**
+     * Vuelve a cargar el contenido de la pantalla de historico de viajes con los datos
+     * pasados como parametro.
+     * @param {Array} datos - El array de objetos viaje a mostrar.
+     */
+    async function reloadContain(datos) {
+      datos = await datos
+      // console.log(datos);
+      contenedor.innerHTML = "";
+      if (datos.length != 0) {
+        datos.forEach(viaje => {
+          generarAccordion(viaje, conductor);
+        });
+      } else {
+        let contenido = '  <div class="accordion-item">\
+    <h2 class="accordion-header">\
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">\
+        No hay viajes\
+      </button>\
+    </h2>\
+  </div>';
+        contenedor.innerHTML += contenido;
+      }
+    }
+
+    /**
+     * Genera un accordion para mostrar la informacion de un viaje.
+     * @param {Object} viaje - El viaje a mostrar.
+     * @param {boolean} conductor - Un booleano que indica si el usuario es conductor o no.
+     */
+    async function generarAccordion(viaje, conductor = null) {
+      if (viaje.turno == "3") {
+        viaje.turno = "Noche";
+      } else if (viaje.turno == "2") {
+        viaje.turno = "Tarde";
+      } else {
+        viaje.turno = "Mañana";
+      }
+      let contenido = '<div class="accordion-item">\
+      <h2 class="accordion-header">\
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"\
+          data-bs-target="#'+ viaje.id + '" aria-expanded="true" aria-controls="' + viaje.id + '">\
+          '+ convertToDateOnly(viaje.fecha) + ' ' + (conductor ? viaje.usuario.nombre + " " + viaje.usuario.apellidos : "") + '\
+        </button>\
+      </h2>\
+      <div id="'+ viaje.id + '" class="accordion-collapse collapse" data-bs-parent="#accordionExample">\
+        <div class="accordion-body">';
+      if (conductor) {
+        contenido += 'Pasajero: ' + viaje.usuario.nombre + ' ' + viaje.usuario.apellidos + '\
+    <br>DNI Pasajero: '+ viaje.usuario.dni + '<br>';
+      }
+      contenido += 'Fecha: ' + convertToDateOnly(viaje.fecha) + '\
+          <br>Ubicacion: '+ viaje.ubicacion + '\
+          <br>Turno: '+ viaje.turno + '\
+          <br>Viaje utilizado: '+ (viaje.conductor ? "Canjeado" : "Pendiente") + '\
+          </div>\
+      </div>\
+    </div>';
+
+      contenedor.innerHTML += contenido;
+    }
+  </script>
+</body>
+
+</html>
